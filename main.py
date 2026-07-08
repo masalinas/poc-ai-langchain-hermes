@@ -15,6 +15,7 @@ Fixes vs. the original:
      `.pretty_print()` on tuples that were never real messages.
 """
 
+import os
 from typing import Annotated, TypedDict
 
 from langgraph.graph import StateGraph, START, END
@@ -39,8 +40,17 @@ class AgentState(TypedDict):
 # ---------------------------------------------------------------------
 
 def make_agent(max_iterations: int = 10) -> AIAgent:
-    return AIAgent(quiet_mode=True, max_iterations=max_iterations)
+    # We increased the timeout to 5 minutes (300 seconds) so that the CPU 
+    # has time to process the reasoning without Python cutting the connection.
+    os.environ["HERMES_STREAM_READ_TIMEOUT"] = "300"
 
+    # Load your Ollama model configured in the CLI, but with secure environments
+    #return AIAgent(quiet_mode=True, max_iterations=max_iterations)
+    return AIAgent(
+        quiet_mode=True,
+        skip_memory=True,  # Highly recommended to avoid overloading your system's RAM with native context files.
+        max_iterations=max_iterations
+    )    
 
 # ---------------------------------------------------------------------
 # 3. Nodes
